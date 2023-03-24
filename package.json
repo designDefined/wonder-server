@@ -1,0 +1,10 @@
+{
+  "name": "wonder-server",
+  "version": "1.0.0",
+  "description": "server for application \"wonder\" by team POV",
+  "main": "index.ts",
+  "repository": "https://github.com/designDefined/wonder-server",
+  "author": "designDefined",
+  "license": "MIT",
+  "private": null
+}

@@ -13,3 +13,7 @@
 
 ## 소셜 로그인 
 - [express로 카카오 소셜 로그인 기능을 적용하기](https://velog.io/@gbwlxhd97/express%EB%A1%9C-%EC%B9%B4%EC%B9%B4%EC%98%A4-%EC%86%8C%EC%85%9C-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EA%B8%B0%EB%8A%A5%EC%9D%84-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B8%B0)
+
+
+
+mongod --dbpath :D:\Tool\MongoDB\data --quiet

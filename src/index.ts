@@ -1,8 +1,9 @@
-import express, { Express, Request, Response } from "express";
+import express, { Application, Express, Request, Response } from "express";
 import mongoose, { ConnectOptions } from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
-import routes from "./routes";
+import sample from "./routes/sample";
+import index from "./routes/index";
 
 dotenv.config();
 
@@ -13,13 +14,19 @@ const dbURI = "mongodb://127.0.0.1:27017/test";
 const mongooseOptions: ConnectOptions = {};
 
 app.use(express.json());
-
 app.use(cors());
 
 mongoose
   .connect(dbURI, mongooseOptions)
   .then(() => console.log("MongoDB connected..."))
   .catch((err) => console.log(err));
+
+app.get("/user", (req, res) => {
+  res.send("hello?");
+});
+
+app.use("/", index);
+app.use("/sample", sample);
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);

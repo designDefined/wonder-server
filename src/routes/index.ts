@@ -1,7 +1,9 @@
-import {Express, Request, Response} from "express";
+import { Router } from "express";
 
-export default function routes (app: Express) {
-    app.get("/",(req:Request,res:Response)=>{
-        res.send("Wonder Server!!!!");
-    })
-}
+const router = Router();
+
+router.get("/", (req, res) => {
+  res.send("Wonder Server!!!!");
+});
+
+export default router;

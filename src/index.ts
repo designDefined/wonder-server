@@ -4,6 +4,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import sample from "./routes/sample";
 import index from "./routes/index";
+import { Kitten } from "./model/sample";
+import { User } from "./model/user";
 
 dotenv.config();
 
@@ -21,12 +23,14 @@ mongoose
   .then(() => console.log("MongoDB connected..."))
   .catch((err) => console.log(err));
 
-app.get("/user", (req, res) => {
-  res.send("hello?");
-});
-
 app.use("/", index);
 app.use("/sample", sample);
+
+app.get("/login", (req, res) => {
+  setTimeout(() => {
+    res.status(200).json({ name: "jy" });
+  }, 5000);
+});
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);

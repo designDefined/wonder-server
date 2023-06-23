@@ -11,7 +11,6 @@ router.get("/ping", (req, res) => {
 });
 
 router.post("/echo", (req, res) => {
-  console.dir(req.body);
   res.json(req.body);
 });
 

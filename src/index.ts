@@ -1,4 +1,10 @@
-import express, { Application, Express, Request, Response } from "express";
+import express, {
+  Application,
+  Express,
+  Request,
+  Response,
+  urlencoded,
+} from "express";
 import mongoose, { ConnectOptions } from "mongoose";
 import passport from "passport";
 import cors from "cors";
@@ -11,22 +17,32 @@ import {
 } from "passport-naver-v2";
 import axios from "axios";
 import { User } from "./model/user";
+import db, { connectDB } from "./db/connect";
+import wonder from "./routes/wonder";
+import user from "./routes/user";
+import creator from "./routes/creator";
 
 dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT;
-const dbURI = "mongodb://127.0.0.1:27017/test";
+//const dbURI = "mongodb://127.0.0.1:27017/test";
 
-const mongooseOptions: ConnectOptions = {};
+//const mongooseOptions: ConnectOptions = {};
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+connectDB();
+
+/*
 mongoose
   .connect(dbURI, mongooseOptions)
   .then(() => console.log("MongoDB connected..."))
   .catch((err) => console.log(err));
+ 
+ */
 /*
 passport.use(
   new NaverStrategy(
@@ -62,19 +78,17 @@ app.use(passport.initialize());
 */
 app.use("/", index);
 app.use("/sample", sample);
-/*
-app.get("/login", (req, res) => {
-  setTimeout(() => {
-    res.status(200).json({ name: "jy" });
-  }, 5000);
-});
-*/
+app.use("/user", user);
+app.use("/wonder", wonder);
+app.use("/creator", creator);
 
 app.get("/all", async (req, res) => {
-  const data = await User.findOne({
-    platformId: "1U17Qw963ikEu_Yiw4LovtXZ8Lt3nK067QjjS4_NWdo",
-  });
-  res.json(data);
+  if (db()) {
+    const data = await db()?.collection("user").find().toArray();
+    res.json(data);
+  } else {
+    res.json({ error: "db is null" });
+  }
 });
 
 app.post("/login/naver", async (req, res) => {

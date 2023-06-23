@@ -1,6 +1,6 @@
 import express, { Router } from "express";
 import db from "../db/connect";
-import { UserDB, UserSummary } from "../types/user";
+import { UserDB, UserDisplaySimple } from "../types/user";
 import { CreatorDB, CreatorDisplay } from "../types/creator";
 
 export const router = Router();
@@ -12,7 +12,7 @@ router.post("/login", async (req, res) => {
       const user = await db()
         ?.collection<UserDB>("user")
         .findOne(
-          { id: "test" },
+          { id: 0 },
           {
             projection: {
               id: 1,
@@ -26,7 +26,7 @@ router.post("/login", async (req, res) => {
         res.status(401).json({ error: "can't find user" });
         return;
       }
-      res.json(user as UserSummary);
+      res.json(user as UserDisplaySimple);
     } else {
       res.json({
         error: `unidentified code: ${code}`,

@@ -14,4 +14,6 @@ router.post("/echo", (req, res) => {
   res.json(req.body);
 });
 
+router.post("/db", () => {});
+
 export default router;

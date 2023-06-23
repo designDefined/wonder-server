@@ -1,9 +1,10 @@
 import { DateInformation, StoredImage } from "./utility";
-import { WonderDB } from "./wonder";
-import { CreatorDB } from "./creator";
+import { Wonder } from "./wonder";
+import { Creator } from "./creator";
+import { WithId } from "mongodb";
 
-export type UserDB = {
-  id: string;
+export type User = {
+  id: number;
   platformType: "NAVER" | "ADMIN";
   name: string;
   nickname: string;
@@ -11,13 +12,15 @@ export type UserDB = {
   email: string;
   profileImage: StoredImage;
   dateInformation: DateInformation;
-  reservedWonders: WonderDB["id"][];
-  likedWonders: WonderDB["id"][];
-  ticketBook: WonderDB["id"][];
-  ownedCreators: CreatorDB["id"];
+  reservedWonders: Wonder["id"][];
+  likedWonders: Wonder["id"][];
+  ticketBook: Wonder["id"][];
+  ownedCreators: Creator["id"];
 };
 
-export type UserSummary = Pick<
-  UserDB,
+export type UserDB = WithId<User>;
+
+export type UserDisplaySimple = Pick<
+  User,
   "id" | "name" | "nickname" | "profileImage"
 >;

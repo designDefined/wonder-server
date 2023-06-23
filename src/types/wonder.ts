@@ -1,7 +1,8 @@
 import { DateInformation, StoredImage } from "./utility";
 import { CreatorDisplay } from "./creator";
+import { WithId } from "mongodb";
 
-export type WonderDB = {
+export type Wonder = {
   id: number;
   title: string;
   tags: string[];
@@ -15,12 +16,14 @@ export type WonderDB = {
   dateInformation: DateInformation;
 };
 
-export type WonderView = Omit<WonderDB, "creator"> & {
+export type WonderDB = WithId<Wonder>;
+
+export type WonderView = Omit<Wonder, "creator"> & {
   creator: CreatorDisplay;
 };
 
 export type WonderCardDisplay = Pick<
-  WonderDB,
+  Wonder,
   "id" | "title" | "tags" | "thumbnail"
 > & {
   creator: CreatorDisplay;

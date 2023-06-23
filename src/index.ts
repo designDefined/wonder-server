@@ -1,15 +1,6 @@
-import express, {
-  Application,
-  Express,
-  Request,
-  Response,
-  urlencoded,
-} from "express";
-import mongoose, { ConnectOptions } from "mongoose";
-import passport from "passport";
+import express, { Express } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import sample from "./routes/sample";
 import index from "./routes/index";
 import {
   Strategy as NaverStrategy,
@@ -26,9 +17,6 @@ dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT;
-//const dbURI = "mongodb://127.0.0.1:27017/test";
-
-//const mongooseOptions: ConnectOptions = {};
 
 app.use(cors());
 app.use(express.json());
@@ -36,13 +24,6 @@ app.use(express.urlencoded({ extended: true }));
 
 connectDB();
 
-/*
-mongoose
-  .connect(dbURI, mongooseOptions)
-  .then(() => console.log("MongoDB connected..."))
-  .catch((err) => console.log(err));
- 
- */
 /*
 passport.use(
   new NaverStrategy(
@@ -74,10 +55,9 @@ passport.deserializeUser(function (obj, done) {
 });
 
 app.use(passport.initialize());
-
 */
+
 app.use("/", index);
-app.use("/sample", sample);
 app.use("/user", user);
 app.use("/wonder", wonder);
 app.use("/creator", creator);

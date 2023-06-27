@@ -2,7 +2,6 @@ import { Router } from "express";
 import db from "../db/connect";
 import { WonderCardDisplay, WonderDB, WonderView } from "../types/wonder";
 import { CreatorDB, CreatorDisplay } from "../types/creator";
-import { WithId } from "mongodb";
 
 const router = Router();
 

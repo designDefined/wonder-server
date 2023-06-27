@@ -15,7 +15,7 @@ export type User = {
   reservedWonders: Wonder["id"][];
   likedWonders: Wonder["id"][];
   ticketBook: Wonder["id"][];
-  ownedCreators: Creator["id"];
+  ownedCreators: Creator["id"][];
 };
 
 export type UserDB = WithId<User>;

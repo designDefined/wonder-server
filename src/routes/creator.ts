@@ -1,7 +1,7 @@
 import { Router } from "express";
 import db from "../db/connect";
 import { UserDB, UserSummary } from "../types/user";
-import { CreatorDB } from "../types/creator";
+import { Creator, CreatorDB } from "../types/creator";
 import { unique } from "../functions/uniqueId";
 import { DateInformation, StoredImage } from "../types/utility";
 import { WonderDB } from "../types/wonder";
@@ -62,7 +62,7 @@ router.post("/new", async (req, res) => {
     };
     const image: StoredImage = { src: "", altText: "" };
     const result = await db()
-      ?.collection<CreatorDB>("creator")
+      ?.collection<Creator>("creator")
       .insertOne({
         id: id,
         owner: user._id,

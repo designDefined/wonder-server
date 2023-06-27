@@ -1,71 +1,44 @@
-import express, { Router } from "express";
-import db from "../db/connect";
-import { UserDB, UserDisplaySimple } from "../types/user";
-import { CreatorDB, CreatorDisplay } from "../types/creator";
+import { Router } from "express";
+
+import defineScenario, {
+  extractRequest,
+  findAll,
+  findOne,
+  mapCache,
+  parseCacheToNumber,
+  raiseError,
+  selectData,
+  setCache,
+  withCache,
+} from "../libs/scenario";
 
 export const router = Router();
 
-router.post("/login", async (req, res) => {
-  const { code } = req.body;
-  if (db()) {
-    if (code === "test") {
-      const user = await db()
-        ?.collection<UserDB>("user")
-        .findOne(
-          { id: 0 },
-          {
-            projection: {
-              id: 1,
-              name: 1,
-              nickname: 1,
-              profileImage: 1,
-            },
-          },
-        );
-      if (!user) {
-        res.status(401).json({ error: "can't find user" });
-        return;
-      }
-      res.json(user as UserDisplaySimple);
-    } else {
-      res.json({
-        error: `unidentified code: ${code}`,
-        echo: req.body,
-      });
-    }
-  } else {
-    res.status(401).json({ error: "db is null" });
-  }
-});
+router.post(
+  "/login",
+  defineScenario(
+    extractRequest({ body: ["code"] }),
+    (flow) =>
+      flow.cache.code === "test"
+        ? setCache({ id: "0" })(flow)
+        : raiseError("등록되지 않은 테스트 코드입니다", 401)(flow),
+    parseCacheToNumber("id"),
+    withCache(findOne)("user"),
+    selectData("user"),
+  ),
+);
 
-router.get("/ownedCreator", async (req, res) => {
-  const { userId } = req.query;
-
-  if (db()) {
-    const user = (await db()
-      ?.collection<UserDB>("user")
-      .findOne({ id: userId })) as UserDB;
-
-    if (!user) {
-      res.status(401).json({ error: "can't find user" });
-      return;
-    }
-
-    const creators = (await db()
-      ?.collection<CreatorDB>("creator")
-      .find(
-        { id: { $in: user.ownedCreators } },
-        { projection: { id: 1, name: 1, profileImage: 1 } },
-      )
-      .toArray()) as CreatorDisplay[];
-    if (!creators) {
-      res.status(401).json({ error: "can't find creators" });
-      return;
-    }
-    res.json(creators);
-  } else {
-    res.json({ error: "db is null" });
-  }
-});
+router.get(
+  "/ownedCreator",
+  defineScenario(
+    extractRequest({ query: ["userId"] }),
+    parseCacheToNumber("userId"),
+    mapCache((cache) => ({ id: cache.userId })),
+    withCache(findOne)("user"),
+    (flow) => setCache({ id: { $in: flow.data.user.ownedCreators } })(flow),
+    withCache(findAll)("creator"),
+    selectData("creators"),
+  ),
+);
 
 export default router;

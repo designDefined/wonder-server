@@ -1,17 +1,24 @@
 import { Router } from "express";
-import defineScenario, { appendData, findOne } from "../libs/scenario";
+import defineScenario, {
+  appendData,
+  echo,
+  findOne,
+  promptRequest,
+  setData,
+} from "../libs/scenario";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.send("Wonder Server!!!!");
-});
+router.get("/", defineScenario(setData("Wonder Server!!!")));
 
 router.get("/ping", defineScenario(appendData({ message: "pong" })));
 
-router.post("/echo", (req, res) => {
-  res.json(req.body);
-});
+router.post("/echo", defineScenario(echo));
+
+router.post(
+  "/reqTest/:firstId/and/:secondId",
+  defineScenario(promptRequest, echo),
+);
 
 router.get("/db", defineScenario(findOne("user", { name: "테스트" })));
 

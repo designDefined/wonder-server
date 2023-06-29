@@ -13,16 +13,34 @@ import wonder from "./routes/wonder";
 import user from "./routes/user";
 import creator from "./routes/creator";
 
-dotenv.config();
 
+
+/*** basics ***/
+dotenv.config();
 const app: Express = express();
 const port = process.env.PORT;
 
+
+/*** middlewares ***/
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-connectDB();
+/*** connect DB ***/
+connectDB().catch(()=> console.log("DB connection failed"));
+
+
+/*** routes ***/
+app.use("/", index);
+app.use("/user", user);
+app.use("/wonder", wonder);
+app.use("/creator", creator);
+
+/*** open server ***/
+app.listen(port, () => {
+  console.log(`[server]: Server is running at http://localhost:${port}`);
+});
+
 
 /*
 passport.use(
@@ -57,20 +75,8 @@ passport.deserializeUser(function (obj, done) {
 app.use(passport.initialize());
 */
 
-app.use("/", index);
-app.use("/user", user);
-app.use("/wonder", wonder);
-app.use("/creator", creator);
 
-app.get("/all", async (req, res) => {
-  if (db()) {
-    const data = await db()?.collection("user").find().toArray();
-    res.json(data);
-  } else {
-    res.json({ error: "db is null" });
-  }
-});
-
+/* 
 app.post("/login/naver", async (req, res) => {
   const data = req.body as { code: string };
   try {
@@ -143,7 +149,5 @@ app.post("/register", async (req, res) => {
     res.json(existingUser);
   }
 });
+*/
 
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
-});

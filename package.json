@@ -6,7 +6,6 @@
   "repository": "https://github.com/designDefined/wonder-server",
   "author": "designDefined",
   "license": "MIT",
-  "private": "false",
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/index.js",

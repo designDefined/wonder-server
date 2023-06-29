@@ -2,18 +2,10 @@ import express, { Express } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import index from "./routes/index";
-import {
-  Strategy as NaverStrategy,
-  Profile as NaverProfile,
-} from "passport-naver-v2";
-import axios from "axios";
-import { User } from "./model/user";
-import db, { connectDB } from "./db/connect";
+import { connectDB } from "./db/connect";
 import wonder from "./routes/wonder";
 import user from "./routes/user";
 import creator from "./routes/creator";
-
-
 
 /*** basics ***/
 dotenv.config();
@@ -38,9 +30,17 @@ app.use("/creator", creator);
 
 /*** open server ***/
 app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`);
+  console.log(`[server]: Server is running at http://localhost:${port ?? "invalid port"}`);
 });
 
+/* 
+import {
+  Strategy as NaverStrategy,
+  Profile as NaverProfile,
+} from "passport-naver-v2";
+import axios from "axios";
+import { User } from "./model/user"; 
+*/
 
 /*
 passport.use(

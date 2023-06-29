@@ -1,7 +1,13 @@
 import { Router } from "express";
 import db from "../db/connect";
-import { WonderCardDisplay, WonderDB, WonderView } from "../types/wonder";
+import {
+  Wonder,
+  WonderCardDisplay,
+  WonderDB,
+  WonderView,
+} from "../types/wonder";
 import { CreatorDB, CreatorDisplay } from "../types/creator";
+import { unique } from "../functions/uniqueId";
 
 const router = Router();
 
@@ -38,7 +44,7 @@ router.get("/recent", async (req, res) => {
 router.get("/:wonderId", async (req, res) => {
   const wonderId: string = req.params.wonderId;
   if (!wonderId) {
-    res.json({ error: "wonderId is null" });
+    res.status(500).json({ error: "wonderId is null" });
     return null;
   }
   if (db()) {
@@ -48,7 +54,7 @@ router.get("/:wonderId", async (req, res) => {
       .findOne({ id: idToFind });
 
     if (!wonder) {
-      res.json({ error: "can't find wonder" });
+      res.status(500).json({ error: "can't find wonder" });
       return null;
     }
     const creator = (await db()
@@ -59,13 +65,47 @@ router.get("/:wonderId", async (req, res) => {
       )) as CreatorDisplay;
 
     if (!creator) {
-      res.json({ error: "can't find creator" });
+      res.status(500).json({ error: "can't find creator" });
       return null;
     }
     const data = { ...wonder, creator };
     res.json(data);
   } else {
-    res.json({ error: "db is null" });
+    res.status(500).json({ error: "db is null" });
+  }
+});
+
+router.post("/new", async (req, res) => {
+  const wonderData = req.body.wonder;
+  const creatorId = Number(req.headers.authorization);
+
+  if (db()) {
+    const creator = await db()
+      ?.collection<CreatorDB>("creator")
+      .findOne({ id: creatorId });
+
+    if (!creator) {
+      res.status(500).json({ error: "can't find creator" });
+      return null;
+    }
+    const id = unique.wonderId();
+    const result = await db()
+      ?.collection<Wonder>("wonder")
+      .insertOne({
+        ...wonderData,
+        id: id,
+        creator: creator._id,
+        dateInformation: {
+          createdAt: new Date(),
+          lastModifiedAt: new Date(),
+        },
+      });
+    const result2 = await db()
+      ?.collection<CreatorDB>("creator")
+      .updateOne({ _id: creator._id }, { $push: { createdWonder: id } });
+    res.json({ isSuccess: true, createdId: id });
+  } else {
+    res.status(500).json({ error: "db is null" });
   }
 });
 

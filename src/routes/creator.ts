@@ -68,7 +68,10 @@ router.post("/new", async (req, res) => {
         owner: user._id,
         name: name,
         summary: summary,
-        profileImage: image,
+        profileImage: {
+          src: "/src/assets/sample/creator_thumbnail_sample_1.png",
+          altText: "",
+        },
         dateInformation: date,
         createdWonder: [],
         instagram: instagram ? instagram : "",

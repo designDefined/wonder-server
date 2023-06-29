@@ -1,6 +1,6 @@
-let creatorId = 3;
+let creatorId = 0;
 let wonderId = 0;
-let userId = 0;
+let userId = 3;
 
 export const unique = {
   creatorId: () => {

@@ -122,6 +122,8 @@ export const promptData: Plot = (flow) => {
   return Promise.resolve(flow);
 };
 export const promptRequest: Plot = (flow) => {
+  console.log("header");
+  console.log(flow.req.headers);
   console.log("body");
   console.log(flow.req.body);
   console.log("params");
@@ -183,6 +185,7 @@ export const extractRequest =
       return raiseError(errors.join("\n"), 400)(flow);
     } else {
       return appendCache({
+        ...(extracted.headers ?? {}),
         ...(extracted.body ?? {}),
         ...(extracted.query ?? {}),
         ...(extracted.params ?? {}),

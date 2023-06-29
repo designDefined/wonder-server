@@ -6,6 +6,8 @@ import defineScenario, {
   findOne,
   mapCache,
   parseCacheToNumber,
+  promptCache,
+  promptRequest,
   raiseError,
   selectData,
   setCache,
@@ -18,10 +20,16 @@ router.post(
   "/login",
   defineScenario(
     extractRequest({ body: ["code"] }),
-    (flow) =>
-      flow.cache.code === "test"
-        ? setCache({ id: "0" })(flow)
-        : raiseError("등록되지 않은 테스트 코드입니다", 401)(flow),
+    mapCache((cache) => ({ email: cache.code })),
+    withCache(findOne)("user"),
+    selectData("user"),
+  ),
+);
+
+router.post(
+  "/autoLogin",
+  defineScenario(
+    extractRequest({ body: ["id"] }),
     parseCacheToNumber("id"),
     withCache(findOne)("user"),
     selectData("user"),
@@ -31,9 +39,10 @@ router.post(
 router.get(
   "/ownedCreator",
   defineScenario(
-    extractRequest({ query: ["userId"] }),
-    parseCacheToNumber("userId"),
-    mapCache((cache) => ({ id: cache.userId })),
+    extractRequest({ headers: ["authorization"] }),
+    promptCache,
+    parseCacheToNumber("authorization"),
+    mapCache((cache) => ({ id: cache.authorization })),
     withCache(findOne)("user"),
     (flow) => setCache({ id: { $in: flow.data.user.ownedCreators } })(flow),
     withCache(findAll)("creator"),

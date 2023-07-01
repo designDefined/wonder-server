@@ -2,16 +2,27 @@ import express, { Express } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import index from "./routes/index";
-import { connectDB } from "./db/connect";
+import db, { connectDB } from "./db/connect";
 import wonder from "./routes/wonder";
 import user from "./routes/user";
 import creator from "./routes/creator";
+import defineScenario from "./libs/flow/express";
+import {
+  extractRequest,
+  setData,
+  setContext,
+  appendData,
+  prompt,
+  promptWithFlag,
+  cutData,
+} from "./libs/flow";
+import { Wonder } from "./types/wonder";
+import { dbFindOne } from "./libs/flow/mongodb";
 
 /*** basics ***/
 dotenv.config();
 const app: Express = express();
 const port = process.env.PORT;
-
 
 /*** middlewares ***/
 app.use(cors());
@@ -19,8 +30,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 /*** connect DB ***/
-connectDB().catch(()=> console.log("DB connection failed"));
-
+connectDB().catch(() => console.log("DB connection failed"));
 
 /*** routes ***/
 app.use("/", index);
@@ -28,10 +38,28 @@ app.use("/user", user);
 app.use("/wonder", wonder);
 app.use("/creator", creator);
 
-/*** open server ***/
-app.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port ?? "invalid port"}`);
-});
+app.get(
+  "/newScenario/:wonder_id",
+  defineScenario(
+    extractRequest({ params: ["wonder_id"], query: [], headers: [] } as const),
+    setContext<{ id: string }, { wonder_id: string }>((f) =>
+      Promise.resolve({ id: f.context.wonder_id }),
+    )("filter"),
+    setData(() => Promise.resolve({ value: "someValue" })),
+    setData<Wonder>((f) => dbFindOne<Wonder>("wonder")({ id: 1 })(db())),
+    appendData<string>(() => Promise.resolve("appended data"))("appended"),
+    cutData("title"),
+    prompt,
+  ),
+),
+  /*** open server ***/
+  app.listen(port, () => {
+    console.log(
+      `[server]: Server is running at http://localhost:${
+        port ?? "invalid port"
+      }`,
+    );
+  });
 
 /* 
 import {
@@ -74,7 +102,6 @@ passport.deserializeUser(function (obj, done) {
 
 app.use(passport.initialize());
 */
-
 
 /* 
 app.post("/login/naver", async (req, res) => {
@@ -150,4 +177,3 @@ app.post("/register", async (req, res) => {
   }
 });
 */
-

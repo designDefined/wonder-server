@@ -10,12 +10,12 @@ import {
   BaseFlow,
   FlowError,
   FlowErrorReport,
-  Flow,
   CutData,
+  ParseContextToInt,
 } from "./types";
 
 /**
- * Core Fiucntions
+ * Core Functions
  */
 export const parsePlot: ParsePlot = (plot) => async (flow) => {
   const awaitedFlow = await flow;
@@ -43,6 +43,11 @@ export const raiseScenarioError =
   <InputFlow extends BaseFlow>(flow: InputFlow): FlowError => {
     return { ...flow, status: "error", error_code, error_message };
   };
+export const raiseScenarioErrorWithReport =
+  ({ error_code, error_message }: FlowErrorReport) =>
+  <InputFlow extends BaseFlow>(flow: InputFlow): FlowError =>
+    raiseScenarioError(error_code, error_message)(flow);
+
 export const raiseSimpleError = (
   error_code: number,
   error_message: string,
@@ -128,11 +133,20 @@ export const extractRequest: ExtractRequest = (filter) => (inputFlow) => {
 export const setContext: SetContext =
   (selector) => (key) => async (inputFlow) => {
     const newContext = await selector(inputFlow);
-    return {
-      ...inputFlow,
-      context: { ...inputFlow.context, [key]: newContext },
-    };
+    return isErrorReport(newContext)
+      ? raiseScenarioErrorWithReport(newContext)(inputFlow)
+      : {
+          ...inputFlow,
+          context: { ...inputFlow.context, [key]: newContext },
+        };
   };
+
+export const parseContextToInt: ParseContextToInt = (key) => (inputFlow) => {
+  const intValue = parseInt(inputFlow["context"][key]);
+  return isNaN(intValue)
+    ? raiseScenarioError(402, `${key}가 숫자가 아닙니다`)(inputFlow)
+    : { ...inputFlow, context: { ...inputFlow.context, [key]: intValue } };
+};
 
 /**
  * Data
@@ -140,7 +154,7 @@ export const setContext: SetContext =
 export const setData: SetData = (selector) => async (inputFlow) => {
   const newData = await selector(inputFlow);
   return isErrorReport(newData)
-    ? { ...inputFlow, status: "error", ...newData }
+    ? raiseScenarioErrorWithReport(newData)(inputFlow)
     : {
         ...inputFlow,
         data: newData,
@@ -151,7 +165,8 @@ export const appendData: AppendData =
   (selector) => (key) => async (inputFlow) => {
     const newDataValue = await selector(inputFlow);
     return isErrorReport(newDataValue)
-      ? { ...inputFlow, status: "error", ...newDataValue }
+      ? //? { ...inputFlow, status: "error", ...newDataValue }
+        raiseScenarioErrorWithReport(newDataValue)(inputFlow)
       : {
           ...inputFlow,
           data: { ...inputFlow.data, [key]: newDataValue },
@@ -160,10 +175,13 @@ export const appendData: AppendData =
 
 export const cutData: CutData = (key) => (inputFlow) => {
   const { data } = inputFlow;
-  const { [key]: _, ...newData } = data;
+  const { [key]: omit, ...newData } = data;
   return { ...inputFlow, data: newData };
 };
 
+/**
+ * Core
+ */
 const defineScenario: DefineScenario = (...plots) =>
   pipe(...plots.map(parsePlot), sendResponse);
 

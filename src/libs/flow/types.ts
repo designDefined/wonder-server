@@ -122,7 +122,6 @@ export type Finale = <I extends BaseFlow>(
  *
  *
  *
- *
  */
 
 /**
@@ -171,6 +170,17 @@ export type SetContext = <
   | FlowError
 >;
 
+export type ParseContextToInt = <Key extends string>(
+  key: Key,
+) => <InputFlow extends Flow<Record<Key, string>, any>>(
+  inputFlow: InputFlow,
+) =>
+  | Flow<
+      Omit<InputFlow["context"], Key> & Record<Key, number>,
+      InputFlow["data"]
+    >
+  | FlowError;
+
 /**
  * Data
  */
@@ -195,10 +205,11 @@ export type AppendData = <
 ) => <InputFlow extends Flow<RequiredContext, RequiredData>>(
   inputFlow: InputFlow,
 ) => Promise<
-  Flow<
-    InputFlow["context"],
-    InputFlow["data"] & Record<typeof key, ExpectedValue>
-  >
+  | Flow<
+      InputFlow["context"],
+      InputFlow["data"] & Record<typeof key, ExpectedValue>
+    >
+  | FlowError
 >;
 
 export type CutData = <Key extends string>(
@@ -239,26 +250,26 @@ export type DefineScenario = <
   R19,
   R20,
 >(
-  f1: (a: Init) => Promise<R1 | FlowError>,
-  f2?: (a: R1) => Promise<R2 | FlowError>,
-  f3?: (a: R2) => Promise<R3 | FlowError>,
-  f4?: (a: R3) => Promise<R4 | FlowError>,
-  f5?: (a: R4) => Promise<R5 | FlowError>,
-  f6?: (a: R5) => Promise<R6 | FlowError>,
-  f7?: (a: R6) => Promise<R7 | FlowError>,
-  f8?: (a: R7) => Promise<R8 | FlowError>,
-  f9?: (a: R8) => Promise<R9 | FlowError>,
-  f11?: (a: R9) => Promise<R10 | FlowError>,
-  f12?: (a: R10) => Promise<R11 | FlowError>,
-  f13?: (a: R11) => Promise<R12 | FlowError>,
-  f14?: (a: R12) => Promise<R13 | FlowError>,
-  f15?: (a: R13) => Promise<R14 | FlowError>,
-  f16?: (a: R14) => Promise<R15 | FlowError>,
-  f17?: (a: R15) => Promise<R16 | FlowError>,
-  f18?: (a: R16) => Promise<R17 | FlowError>,
-  f19?: (a: R17) => Promise<R18 | FlowError>,
-  f20?: (a: R18) => Promise<R19 | FlowError>,
-  f21?: (a: R19) => Promise<R20 | FlowError>,
+  f1: (a: Init) => AcceptedReturn<R1>,
+  f2?: (a: R1) => AcceptedReturn<R2>,
+  f3?: (a: R2) => AcceptedReturn<R3>,
+  f4?: (a: R3) => AcceptedReturn<R4>,
+  f5?: (a: R4) => AcceptedReturn<R5>,
+  f6?: (a: R5) => AcceptedReturn<R6>,
+  f7?: (a: R6) => AcceptedReturn<R7>,
+  f8?: (a: R7) => AcceptedReturn<R8>,
+  f9?: (a: R8) => AcceptedReturn<R9>,
+  f11?: (a: R9) => AcceptedReturn<R10>,
+  f12?: (a: R10) => AcceptedReturn<R11>,
+  f13?: (a: R11) => AcceptedReturn<R12>,
+  f14?: (a: R12) => AcceptedReturn<R13>,
+  f15?: (a: R13) => AcceptedReturn<R14>,
+  f16?: (a: R14) => AcceptedReturn<R15>,
+  f17?: (a: R15) => AcceptedReturn<R16>,
+  f18?: (a: R16) => AcceptedReturn<R17>,
+  f19?: (a: R17) => AcceptedReturn<R18>,
+  f20?: (a: R18) => AcceptedReturn<R19>,
+  f21?: (a: R19) => AcceptedReturn<R20>,
 ) => (init: Promise<Init>) => Promise<void>;
 
 export type DefineScenarioOf<Handler> = <

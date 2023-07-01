@@ -15,9 +15,11 @@ import {
   prompt,
   promptWithFlag,
   cutData,
+  parseContextToInt,
 } from "./libs/flow";
 import { Wonder } from "./types/wonder";
 import { dbFindOne } from "./libs/flow/mongodb";
+import { WithId } from "mongodb";
 
 /*** basics ***/
 dotenv.config();
@@ -42,24 +44,24 @@ app.get(
   "/newScenario/:wonder_id",
   defineScenario(
     extractRequest({ params: ["wonder_id"], query: [], headers: [] } as const),
-    setContext<{ id: string }, { wonder_id: string }>((f) =>
+    parseContextToInt("wonder_id"),
+    setContext<{ id: number }, { wonder_id: number }>((f) =>
       Promise.resolve({ id: f.context.wonder_id }),
     )("filter"),
-    setData(() => Promise.resolve({ value: "someValue" })),
-    setData<Wonder>((f) => dbFindOne<Wonder>("wonder")({ id: 1 })(db())),
-    appendData<string>(() => Promise.resolve("appended data"))("appended"),
-    cutData("title"),
+    setData<WithId<Wonder>, { wonder_id: number }>((f) =>
+      dbFindOne<Wonder>("wonder")({ id: f.context.wonder_id })(db()),
+    ),
+    cutData("_id"),
     prompt,
   ),
-),
-  /*** open server ***/
-  app.listen(port, () => {
-    console.log(
-      `[server]: Server is running at http://localhost:${
-        port ?? "invalid port"
-      }`,
-    );
-  });
+);
+
+/*** open server ***/
+app.listen(port, () => {
+  console.log(
+    `[server]: Server is running at http://localhost:${port ?? "invalid port"}`,
+  );
+});
 
 /* 
 import {

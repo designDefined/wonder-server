@@ -1,4 +1,10 @@
-import { Db, Filter, WithId } from "mongodb";
+import {
+  Db,
+  Filter,
+  ObjectId,
+  OptionalUnlessRequiredId,
+  WithId,
+} from "mongodb";
 import { raiseSimpleError } from "..";
 import { DbFindOne } from "./types";
 import { FlowErrorReport } from "../types";
@@ -78,4 +84,17 @@ export const dbFindOne =
       );
 
     return Promise.resolve(data);
+  };
+
+export const dbInsertOne =
+  <CollectionType extends Record<string, any>>(collectionName: string) =>
+  (data: OptionalUnlessRequiredId<CollectionType>) =>
+  async (db: Db | null): Promise<ObjectId | FlowErrorReport> => {
+    if (!db) return raiseSimpleError(500, "DB와 연결할 수 없습니다");
+    const insertResult = await db
+      .collection<CollectionType>(collectionName)
+      .insertOne(data);
+    return insertResult.acknowledged
+      ? insertResult.insertedId
+      : raiseSimpleError(500, "데이터를 삽입할 수 없습니다");
   };

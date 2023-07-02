@@ -5,7 +5,8 @@ import { WithId } from "mongodb";
 
 export type User = {
   id: number;
-  platformType: "NAVER" | "ADMIN";
+  platformType: "NAVER" | "KAKAO" | "GOOGLE" | "TEST" | "ADMIN";
+  socialId: string;
   name: string;
   nickname: string;
   phoneNumber: string;
@@ -34,4 +35,14 @@ export type UserLoggedIn = Pick<
 > & {
   token: string;
   howManyCreatorsOwned: number;
+  needRegister: false;
+};
+
+export type UserNeedRegister = Pick<User, "email"> & { needRegister: true };
+
+export type UserRegisterForm = Pick<User, "email" | "name" | "phoneNumber"> & {
+  access_token: string;
+};
+export type NewUserParameter = Omit<UserRegisterForm, "access_token"> & {
+  socialId: string;
 };

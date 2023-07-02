@@ -131,9 +131,21 @@ type Selector<RequiredFlow extends BaseFlow, ExpectedValue> = (
   f: RequiredFlow,
 ) => AcceptedSimpleReturn<ExpectedValue>;
 
+export type CheckFlow = <
+  RequiredContext extends Record<string, any> = Record<string, any>,
+  RequiredData = any,
+>(
+  checker: (
+    flow: Flow<RequiredContext, RequiredData>,
+  ) => AcceptedSimpleReturn<void>,
+) => <InputFlow extends Flow<RequiredContext, RequiredData>>(
+  inputFlow: InputFlow,
+) => AcceptedReturn<InputFlow>;
+
 /**
  * Request
  */
+
 export type ExtractRequest = <
   Filter extends Readonly<Record<keyof ParsedRequestHeader, readonly string[]>>,
 >(

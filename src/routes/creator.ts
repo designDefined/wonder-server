@@ -61,6 +61,7 @@ router.post("/new", async (req, res) => {
       lastModifiedAt: new Date(),
     };
     const image: StoredImage = { src: "", altText: "" };
+
     const result = await db()
       ?.collection<Creator>("creator")
       .insertOne({

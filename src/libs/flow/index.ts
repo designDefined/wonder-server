@@ -14,6 +14,7 @@ import {
   ParseContextToInt,
   MapData,
   ExtractBody,
+  CheckFlow,
 } from "./types";
 
 /**
@@ -65,7 +66,9 @@ export const isErrorReport = <T>(
 /**
  * Debug
  */
-export const prompt = <InputFlow extends BaseFlow>(f: InputFlow): InputFlow => {
+export const promptFlow = <InputFlow extends BaseFlow>(
+  f: InputFlow,
+): InputFlow => {
   console.log(f);
   return f;
 };
@@ -151,6 +154,13 @@ export const extractBody: ExtractBody = (toCompare) => (inputFlow) => {
 /**
  * Context
  */
+export const checkFlow: CheckFlow = (checker) => async (inputFlow) => {
+  const result = await checker(inputFlow);
+  return isErrorReport(result)
+    ? raiseScenarioErrorWithReport(result)(inputFlow)
+    : inputFlow;
+};
+
 export const setContext: SetContext =
   (selector) => (key) => async (inputFlow) => {
     const newContext = await selector(inputFlow);

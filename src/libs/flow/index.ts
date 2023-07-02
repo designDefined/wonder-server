@@ -12,6 +12,8 @@ import {
   FlowErrorReport,
   CutData,
   ParseContextToInt,
+  MapData,
+  ExtractBody,
 } from "./types";
 
 /**
@@ -82,7 +84,6 @@ export const promptWithFlag =
 export const extractRequest: ExtractRequest = (filter) => (inputFlow) => {
   const { req } = inputFlow;
   const { headers, params, query } = req;
-  const body = req.body as (typeof inputFlow)["req"]["body"];
   const errors: string[] = [];
 
   const extractedHeaders = filter.headers.reduce((acc, propName) => {
@@ -119,12 +120,32 @@ export const extractRequest: ExtractRequest = (filter) => (inputFlow) => {
       ...extractedHeaders,
       ...extractedParams,
       ...extractedQuery,
-      body,
     },
   };
   return errors.length > 0
     ? raiseScenarioError(402, errors.join("\n "))(inputFlow)
     : newFlow;
+};
+const typeEqual = (a: any, b: any): boolean => {
+  if (typeof a === "object" && typeof b === "object") {
+    const aKeys = Object.keys(a);
+    const bKeys = Object.keys(b);
+    if (aKeys.length !== bKeys.length) return false;
+    return aKeys.every((key) => typeEqual(a[key], b[key]));
+  } else {
+    return typeof a === typeof b;
+  }
+};
+
+export const extractBody: ExtractBody = (toCompare) => (inputFlow) => {
+  const { req } = inputFlow;
+  const { body } = req;
+
+  if (typeEqual(body, toCompare)) {
+    const validBody = body as typeof toCompare;
+    return { ...inputFlow, context: { ...inputFlow.context, body: validBody } };
+  }
+  return raiseScenarioError(402, "body가 정확하지 않습니다")(inputFlow);
 };
 
 /**
@@ -173,6 +194,14 @@ export const appendData: AppendData =
         };
   };
 
+export const mapData: MapData = (mapper) => async (inputFlow) => {
+  const mappedData = await Promise.all(
+    inputFlow.data.map(
+      async (data, i) => await mapper(data, inputFlow.context, i),
+    ),
+  );
+  return { ...inputFlow, data: mappedData };
+};
 export const cutData: CutData = (key) => (inputFlow) => {
   const { data } = inputFlow;
   const { [key]: omit, ...newData } = data;

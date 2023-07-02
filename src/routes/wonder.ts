@@ -1,16 +1,79 @@
 import { Router } from "express";
 import db from "../db/connect";
-import {
-  Wonder,
-  WonderCardDisplay,
-  WonderDB,
-  WonderView,
-} from "../types/wonder";
-import { CreatorDB, CreatorDisplay } from "../types/creator";
+import { Wonder, WonderCard, WonderDetail } from "../types/wonder";
+import { CreatorDB } from "../types/creator";
 import { unique } from "../functions/uniqueId";
+import defineScenario from "../libs/flow/express";
+import {
+  extractRequest,
+  isErrorReport,
+  mapData,
+  parseContextToInt,
+  promptWithFlag,
+  setData,
+} from "../libs/flow";
+import { dbFind, dbFindOne } from "../libs/flow/mongodb";
+import { DB, Schema } from "../types/db";
+import { toWonderCard, toWonderDetail } from "../functions/wonder";
+import {
+  toCreatorInWonderCard,
+  toCreatorInWonderDetail,
+} from "../functions/creator";
 
 const router = Router();
 
+const deleteNull = <T>(arr: (T | null)[]): T[] => {
+  const nonNull: T[] = [];
+  arr.forEach((item) => {
+    if (item !== null) {
+      nonNull.push(item);
+    }
+  });
+  return nonNull;
+};
+
+router.get(
+  "/recent",
+  defineScenario(
+    setData<DB["wonder"][]>(() => dbFind<Schema["wonder"]>("wonder")()(db())),
+    mapData<(WonderCard | null)[], Record<string, any>, DB["wonder"][]>(
+      async (wonder) => {
+        const creator = await dbFindOne<Schema["creator"]>("creator")({
+          _id: wonder.creator,
+        })(db());
+        return isErrorReport(creator)
+          ? null
+          : toWonderCard(wonder, toCreatorInWonderCard(creator));
+      },
+    ),
+    setData<WonderCard[], Record<string, any>, (WonderCard | null)[]>((f) =>
+      deleteNull(f.data),
+    ),
+  ),
+);
+
+router.get(
+  "/:wonderId",
+  defineScenario(
+    extractRequest({ params: ["wonderId"], query: [], headers: [] } as const),
+    parseContextToInt("wonderId"),
+    setData<DB["wonder"], { wonderId: number }>((f) =>
+      dbFindOne<Schema["wonder"]>("wonder")({ id: f.context.wonderId })(db()),
+    ),
+    setData<WonderDetail, Record<string, any>, DB["wonder"]>(
+      async ({ data }) => {
+        const creator = await dbFindOne<Schema["creator"]>("creator")({
+          _id: data.creator,
+        })(db());
+        return isErrorReport(creator)
+          ? creator
+          : toWonderDetail(data, toCreatorInWonderDetail(creator));
+      },
+    ),
+    promptWithFlag("final"),
+  ),
+);
+/* 
 router.get("/recent", async (req, res) => {
   if (db()) {
     const wonders = await db()
@@ -40,7 +103,6 @@ router.get("/recent", async (req, res) => {
     res.json({ error: "db is null" });
   }
 });
-
 router.get("/:wonderId", async (req, res) => {
   const wonderId: string = req.params.wonderId;
   if (!wonderId) {
@@ -74,6 +136,7 @@ router.get("/:wonderId", async (req, res) => {
     res.status(500).json({ error: "db is null" });
   }
 });
+*/
 
 router.post("/new", async (req, res) => {
   const wonderData = req.body.wonder;

@@ -12,10 +12,10 @@ export type User = {
   email: string;
   profileImage: StoredImage;
   dateInformation: DateInformation;
-  reservedWonders: Wonder["id"][];
-  likedWonders: Wonder["id"][];
-  ticketBook: Wonder["id"][];
-  ownedCreators: Creator["id"][];
+  reservedWonders: Wonder[];
+  likedWonders: Wonder[];
+  ticketBook: Wonder[];
+  ownedCreators: Creator[];
 };
 
 export type UserDB = WithId<User>;
@@ -24,3 +24,14 @@ export type UserDisplaySimple = Pick<
   User,
   "id" | "name" | "nickname" | "profileImage"
 >;
+
+/**
+ * Types For Situations
+ */
+export type UserLoggedIn = Pick<
+  User,
+  "id" | "name" | "nickname" | "profileImage"
+> & {
+  token: string;
+  howManyCreatorsOwned: number;
+};

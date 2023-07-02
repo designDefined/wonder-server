@@ -1,5 +1,16 @@
 import { Router } from "express";
-
+import defineScenario from "../libs/flow/express";
+import {
+  cutData,
+  extractBody,
+  extractRequest,
+  promptWithFlag,
+  setData,
+} from "../libs/flow";
+import { dbFindOne } from "../libs/flow/mongodb";
+import db from "../db/connect";
+import { DB } from "../types/db";
+/* 
 import defineScenario, {
   extractRequest,
   findAll,
@@ -13,10 +24,23 @@ import defineScenario, {
   setCache,
   withCache,
 } from "../libs/scenario";
-
+*/
 export const router = Router();
 
 router.post(
+  "/login",
+  defineScenario(
+    extractBody({ code: "" }),
+    promptWithFlag("abc"),
+    setData<DB["user"], { body: { code: string } }>((f) =>
+      dbFindOne<DB["user"]>("user")({ email: f.context.body.code })(db()),
+    ),
+    cutData("_id"),
+  ),
+);
+
+/* 
+router.post(  
   "/login",
   defineScenario(
     extractRequest({ body: ["code"] }),
@@ -49,5 +73,5 @@ router.get(
     selectData("creators"),
   ),
 );
-
+*/
 export default router;

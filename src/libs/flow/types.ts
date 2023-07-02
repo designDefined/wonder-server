@@ -129,7 +129,7 @@ export type Finale = <I extends BaseFlow>(
  */
 type Selector<RequiredFlow extends BaseFlow, ExpectedValue> = (
   f: RequiredFlow,
-) => Promise<ExpectedValue | FlowErrorReport>;
+) => AcceptedSimpleReturn<ExpectedValue>;
 
 /**
  * Request
@@ -143,10 +143,17 @@ export type ExtractRequest = <
 ) =>
   | Flow<
       InputFlow["context"] &
-        Record<Filter[keyof ParsedRequestHeader][number], string> &
-        Record<"body", InputFlow["req"]["body"]>,
+        Record<Filter[keyof ParsedRequestHeader][number], string>,
       InputFlow["data"]
     >
+  | FlowError;
+
+export type ExtractBody = <ExpectedValue>(
+  toCompare: ExpectedValue,
+) => <InputFlow extends BaseFlow>(
+  inputFlow: InputFlow,
+) =>
+  | Flow<InputFlow["context"] & { body: ExpectedValue }, InitialFlow["data"]>
   | FlowError;
 
 /**
@@ -172,7 +179,7 @@ export type SetContext = <
 
 export type ParseContextToInt = <Key extends string>(
   key: Key,
-) => <InputFlow extends Flow<Record<Key, string>, any>>(
+) => <InputFlow extends Flow<Record<Key, string>, unknown>>(
   inputFlow: InputFlow,
 ) =>
   | Flow<
@@ -193,6 +200,20 @@ export type SetData = <
 ) => <InputFlow extends Flow<RequiredContext, RequiredData>>(
   inputFlow: InputFlow,
 ) => Promise<Flow<InputFlow["context"], ExpectedValue> | FlowError>;
+
+export type MapData = <
+  ExpectedValue extends unknown[],
+  RequiredContext extends Record<string, any> = Record<string, any>,
+  RequiredData extends unknown[] = unknown[],
+>(
+  mapper: (
+    item: RequiredData[number],
+    context: RequiredContext,
+    index: number,
+  ) => AcceptedSimpleReturn<ExpectedValue[number]>,
+) => <InputFlow extends Flow<RequiredContext, RequiredData>>(
+  inputFlow: InputFlow,
+) => Promise<Flow<InputFlow["context"], ExpectedValue[number][]> | FlowError>;
 
 export type AppendData = <
   ExpectedValue,
@@ -224,7 +245,10 @@ export type CutData = <Key extends string>(
 export type ParsePlot = <I extends BaseFlow, O extends BaseFlow | FlowError>(
   plot: (flow: I) => O | Promise<O> | FlowError | Promise<FlowError>,
 ) => (flow: Promise<I | FlowError>) => Promise<O | FlowError>;
-
+type AcceptedSimpleReturn<T> =
+  | T
+  | FlowErrorReport
+  | Promise<T | FlowErrorReport>;
 type AcceptedReturn<T> = T | FlowError | Promise<T | FlowError>;
 
 export type DefineScenario = <

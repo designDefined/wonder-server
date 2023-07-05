@@ -1,7 +1,6 @@
 import { User } from "./user";
 import { DateInformation, StoredImage } from "./utility";
-import { Wonder, WonderDB } from "./wonder";
-import { WithId } from "mongodb";
+import { Wonder } from "./wonder";
 
 export type Creator = {
   id: number;
@@ -14,10 +13,6 @@ export type Creator = {
   subscribedUsers: User[];
   instagram?: string;
 };
-
-export type CreatorDB = WithId<Required<Creator>>;
-
-export type CreatorDisplay = Pick<Creator, "id" | "name" | "profileImage">;
 
 /**
  * Types For Situations

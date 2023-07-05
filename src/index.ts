@@ -11,8 +11,6 @@ import {
   extractRequest,
   setData,
   setContext,
-  appendData,
-  promptWithFlag,
   cutData,
   parseContextToInt,
   promptFlow,
@@ -21,6 +19,7 @@ import { Wonder } from "./types/wonder";
 import { dbFindOne } from "./libs/flow/mongodb";
 import { WithId } from "mongodb";
 import { initUniqueId } from "./functions/uniqueId";
+import { emptyHeader } from "./functions/auth";
 
 /*** basics ***/
 dotenv.config();
@@ -49,7 +48,11 @@ app.use("/creator", creator);
 app.get(
   "/newScenario/:wonder_id",
   defineScenario(
-    extractRequest({ params: ["wonder_id"], query: [], headers: [] } as const),
+    extractRequest({
+      params: ["wonder_id"],
+      query: [],
+      headers: emptyHeader,
+    } as const),
     parseContextToInt("wonder_id"),
     setContext<{ id: number }, { wonder_id: number }>((f) =>
       Promise.resolve({ id: f.context.wonder_id }),

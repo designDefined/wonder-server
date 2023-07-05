@@ -67,6 +67,8 @@ type RequestHeaderObject = Readonly<{
   "www-authenticate"?: string | undefined;
 }>;
 
+export type HeaderKeys = keyof RequestHeaderObject;
+
 export type ParsedRequestHeader = {
   readonly headers: RequestHeaderObject;
   readonly params: Record<string, string>;
@@ -147,7 +149,11 @@ export type CheckFlow = <
  */
 
 export type ExtractRequest = <
-  Filter extends Readonly<Record<keyof ParsedRequestHeader, readonly string[]>>,
+  Filter extends Readonly<
+    Record<Exclude<keyof ParsedRequestHeader, "headers">, readonly string[]> & {
+      headers: HeaderKeys[];
+    }
+  >,
 >(
   filter: Filter,
 ) => <InputFlow extends BaseFlow>(

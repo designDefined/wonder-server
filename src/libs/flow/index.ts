@@ -15,7 +15,6 @@ import {
   MapData,
   ExtractBody,
   CheckFlow,
-  ExtractBodyLenient,
   Flow,
 } from "./types";
 
@@ -131,12 +130,16 @@ export const extractRequest: ExtractRequest = (filter) => (inputFlow) => {
     ? raiseScenarioError(402, errors.join("\n "))(inputFlow)
     : newFlow;
 };
-const typeEqual = (a: any, b: any): boolean => {
-  if (typeof a === "object" && typeof b === "object") {
+
+const typeEqual = (a: unknown, b: unknown): boolean => {
+  if (typeof a === "object" && !!a && typeof b === "object" && !!b) {
     const aKeys = Object.keys(a);
     const bKeys = Object.keys(b);
     if (aKeys.length !== bKeys.length) return false;
-    return aKeys.every((key) => typeEqual(a[key], b[key]));
+    return aKeys.every((key) =>
+      // @ts-ignore
+      typeEqual(a[key] as unknown, b[key] as unknown),
+    );
   } else {
     return typeof a === typeof b;
   }
@@ -241,6 +244,7 @@ export const cutData: CutData = (key) => (inputFlow) => {
  * Core
  */
 const defineScenario: DefineScenario = (...plots) =>
+  //@ts-ignore
   pipe(...plots.map(parsePlot), sendResponse);
 
 export default defineScenario;

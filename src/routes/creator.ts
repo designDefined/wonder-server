@@ -1,15 +1,7 @@
 import { Router } from "express";
 import db from "../db/connect";
-import { UserDB } from "../types/user";
-import {
-  Creator,
-  CreatorDB,
-  CreatorDetail,
-  NewCreator,
-} from "../types/creator";
-import { unique } from "../functions/uniqueId";
-import { DateInformation, StoredImage } from "../types/utility";
-import { WonderDB, WonderSummaryTitleOnly } from "../types/wonder";
+import { CreatorDetail, NewCreator } from "../types/creator";
+import { WonderSummaryTitleOnly } from "../types/wonder";
 import defineScenario from "../libs/flow/express";
 import {
   checkFlow,
@@ -18,13 +10,17 @@ import {
   isErrorReport,
   mapData,
   parseContextToInt,
-  raiseScenarioError,
   raiseScenarioErrorWithReport,
   raiseSimpleError,
   setContext,
   setData,
 } from "../libs/flow";
-import { authorizeUser, authorizeUserLenient } from "../functions/auth";
+import {
+  authedHeader,
+  authorizeUser,
+  authorizeUserLenient,
+  emptyHeader,
+} from "../functions/auth";
 import {
   dbFind,
   dbFindOne,
@@ -48,7 +44,7 @@ router.get(
     extractRequest({
       params: ["creatorId"],
       query: [],
-      headers: [],
+      headers: emptyHeader,
     } as const),
     authorizeUserLenient,
     parseContextToInt("creatorId"),
@@ -80,7 +76,7 @@ router.get(
     extractRequest({
       params: ["creatorId"],
       query: [],
-      headers: [],
+      headers: emptyHeader,
     } as const),
     authorizeUserLenient,
     parseContextToInt("creatorId"),
@@ -94,7 +90,7 @@ router.get(
         id: { $in: f.context.creator.createdWonder },
       })(db()),
     ),
-    mapData<WonderSummaryTitleOnly[], Record<string, any>, DB["wonder"][]>(
+    mapData<WonderSummaryTitleOnly[], object, DB["wonder"][]>(
       toWonderSummaryTitleOnly,
     ),
   ),
@@ -106,7 +102,7 @@ router.post(
     extractRequest({
       params: [],
       query: [],
-      headers: ["authorization"],
+      headers: authedHeader,
     } as const),
     extractBody<NewCreator>({ name: "", summary: "", instagram: "" }),
     authorizeUser,

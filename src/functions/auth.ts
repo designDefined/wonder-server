@@ -9,6 +9,10 @@ import {
 import { dbFindOne } from "../libs/flow/mongodb";
 import { DB, Schema } from "../types/db";
 import { ObjectId } from "mongodb";
+import { HeaderKeys } from "../libs/flow/types";
+
+export const emptyHeader = [] as HeaderKeys[];
+export const authedHeader = ["authorization"] as HeaderKeys[];
 
 export const authorizeUser = setContext<DB["user"], { authorization: string }>(
   (f) => {

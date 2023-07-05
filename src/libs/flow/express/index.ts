@@ -28,7 +28,12 @@ const parseExpressRequest = async (
 
 const defineScenario: DefineScenarioOf<RequestHandler> =
   (...plots) =>
-  (req, res) =>
-    pipe(...plots.map(parsePlot), sendResponse)(parseExpressRequest(req, res));
+  (req, res) => {
+    return pipe(
+      //@ts-ignore
+      ...plots.filter((a) => a !== undefined).map(parsePlot),
+      sendResponse,
+    )(parseExpressRequest(req, res));
+  };
 
 export default defineScenario;

@@ -7,7 +7,6 @@ import {
   extractRequest,
   isErrorReport,
   mapData,
-  promptFlow,
   raiseScenarioErrorWithReport,
   raiseSimpleError,
   setContext,
@@ -27,14 +26,13 @@ import {
   UserRegisterForm,
   UserWithEmail,
 } from "../types/user";
-import { sign, verify } from "jsonwebtoken";
+import { sign } from "jsonwebtoken";
 import {
   prepareNewUser,
   toUserLoggedIn,
   toUserWithEmail,
 } from "../functions/user";
-import { ObjectId } from "mongodb";
-import { authorizeUser } from "../functions/auth";
+import { authedHeader, authorizeUser, emptyHeader } from "../functions/auth";
 import {
   isValidRegisterEmail,
   isValidRegisterName,
@@ -53,21 +51,7 @@ import {
   toWonderSummaryTitleOnly,
 } from "../functions/wonder";
 import { deleteNull } from "../functions/utility";
-/* 
-import defineScenario, {
-  extractRequest,
-  findAll,
-  findOne,
-  mapCache,
-  parseCacheToNumber,
-  promptCache,
-  promptRequest,
-  raiseError,
-  selectData,
-  setCache,
-  withCache,
-} from "../libs/scenario";
-*/
+
 export const router = Router();
 
 router.post(
@@ -107,7 +91,7 @@ router.post(
     extractRequest({
       params: [],
       query: ["access_token"],
-      headers: [],
+      headers: emptyHeader,
     } as const),
     extractBody({ email: "", name: "", phoneNumber: "" }),
     checkFlow<{ body: { email: string } }>(async (f) => {
@@ -165,7 +149,7 @@ router.post(
   "/autoLogin",
   defineScenario(
     extractRequest({
-      headers: ["authorization"],
+      headers: authedHeader,
       params: [],
       query: [],
     } as const),
@@ -181,7 +165,7 @@ router.get(
   "/ownedCreator",
   defineScenario(
     extractRequest({
-      headers: ["authorization"],
+      headers: authedHeader,
       params: [],
       query: [],
     } as const),
@@ -191,9 +175,7 @@ router.get(
         id: { $in: f.context.authedUser.ownedCreators },
       })(db()),
     ),
-    mapData<OwnedCreator[], Record<string, any>, DB["creator"][]>(
-      toOwnedCreator,
-    ),
+    mapData<OwnedCreator[], object, DB["creator"][]>(toOwnedCreator),
   ),
 );
 
@@ -201,7 +183,7 @@ router.get(
   "/myDetail",
   defineScenario(
     extractRequest({
-      headers: ["authorization"],
+      headers: authedHeader,
       params: [],
       query: [],
     } as const),
@@ -209,7 +191,7 @@ router.get(
     setData<DB["user"], { authedUser: DB["user"] }>((f) =>
       dbFindOne<DB["user"]>("user")({ _id: f.context.authedUser._id })(db()),
     ),
-    setData<UserWithEmail, Record<string, any>, DB["user"]>(({ data }) =>
+    setData<UserWithEmail, object, DB["user"]>(({ data }) =>
       toUserWithEmail(data),
     ),
   ),
@@ -219,7 +201,7 @@ router.get(
   "/myWonderSummary",
   defineScenario(
     extractRequest({
-      headers: ["authorization"],
+      headers: authedHeader,
       params: [],
       query: [],
     } as const),
@@ -261,7 +243,7 @@ router.get(
   "/liked",
   defineScenario(
     extractRequest({
-      headers: ["authorization"],
+      headers: authedHeader,
       params: [],
       query: [],
     } as const),
@@ -272,7 +254,7 @@ router.get(
         id: { $in: f.context.authedUser.likedWonders },
       })(db()),
     ),
-    mapData<WonderSummaryTitleOnly[], Record<string, any>, DB["wonder"][]>(
+    mapData<WonderSummaryTitleOnly[], object, DB["wonder"][]>(
       toWonderSummaryTitleOnly,
     ),
   ),
@@ -282,7 +264,7 @@ router.get(
   "/reserved",
   defineScenario(
     extractRequest({
-      headers: ["authorization"],
+      headers: authedHeader,
       params: [],
       query: [],
     } as const),
@@ -292,18 +274,16 @@ router.get(
         id: { $in: f.context.authedUser.reservedWonders },
       })(db()),
     ),
-    mapData<
-      (WonderSummaryReservation | null)[],
-      Record<string, any>,
-      DB["reservation"][]
-    >(async (data) => {
-      const wonder = await getWonderFromReservation(data);
-      if (isErrorReport(wonder)) return null;
-      return toWonderSummaryReservation(wonder, data.time);
-    }),
+    mapData<(WonderSummaryReservation | null)[], object, DB["reservation"][]>(
+      async (data) => {
+        const wonder = await getWonderFromReservation(data);
+        if (isErrorReport(wonder)) return null;
+        return toWonderSummaryReservation(wonder, data.time);
+      },
+    ),
     setData<
       WonderSummaryReservation[],
-      Record<string, any>,
+      object,
       (WonderSummaryReservation | null)[]
     >((f) => deleteNull(f.data)),
   ),
@@ -313,7 +293,7 @@ router.get(
   "/ticketBook",
   defineScenario(
     extractRequest({
-      headers: ["authorization"],
+      headers: authedHeader,
       params: [],
       query: [],
     } as const),
@@ -324,18 +304,16 @@ router.get(
         id: { $in: f.context.authedUser.ticketBook },
       })(db()),
     ),
-    mapData<
-      (WonderSummaryReservation | null)[],
-      Record<string, any>,
-      DB["reservation"][]
-    >(async (data) => {
-      const wonder = await getWonderFromReservation(data);
-      if (isErrorReport(wonder)) return null;
-      return toWonderSummaryReservation(wonder, data.time);
-    }),
+    mapData<(WonderSummaryReservation | null)[], object, DB["reservation"][]>(
+      async (data) => {
+        const wonder = await getWonderFromReservation(data);
+        if (isErrorReport(wonder)) return null;
+        return toWonderSummaryReservation(wonder, data.time);
+      },
+    ),
     setData<
       WonderSummaryReservation[],
-      Record<string, any>,
+      object,
       (WonderSummaryReservation | null)[]
     >((f) => deleteNull(f.data)),
   ),

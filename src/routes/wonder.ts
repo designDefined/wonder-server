@@ -1,21 +1,17 @@
 import { Router } from "express";
 import db from "../db/connect";
-import { NewWonder, Wonder, WonderCard, WonderDetail } from "../types/wonder";
-import { CreatorDB } from "../types/creator";
-import { unique } from "../functions/uniqueId";
+import { NewWonder, WonderCard, WonderDetail } from "../types/wonder";
+
 import defineScenario from "../libs/flow/express";
 import {
   extractRequest,
   isErrorReport,
   mapData,
   parseContextToInt,
-  promptWithFlag,
   setData,
   setContext,
-  checkFlow,
   extractBody,
   raiseScenarioError,
-  raiseScenarioErrorWithReport,
   extractBodyLenient,
 } from "../libs/flow";
 import {
@@ -34,8 +30,12 @@ import {
   toCreatorInWonderCard,
   toCreatorInWonderDetail,
 } from "../functions/creator";
-import { authorizeUser, authorizeUserLenient } from "../functions/auth";
-import { UpdateFilter } from "mongodb";
+import {
+  authedHeader,
+  authorizeUser,
+  authorizeUserLenient,
+  emptyHeader,
+} from "../functions/auth";
 import { deleteNull } from "../functions/utility";
 import {
   isValidWonderLocation,
@@ -49,17 +49,15 @@ router.get(
   "/recent",
   defineScenario(
     setData<DB["wonder"][]>(() => dbFind<Schema["wonder"]>("wonder")()(db())),
-    mapData<(WonderCard | null)[], Record<string, any>, DB["wonder"][]>(
-      async (wonder) => {
-        const creator = await dbFindOne<Schema["creator"]>("creator")({
-          _id: wonder.creator,
-        })(db());
-        return isErrorReport(creator)
-          ? null
-          : toWonderCard(wonder, toCreatorInWonderCard(creator));
-      },
-    ),
-    setData<WonderCard[], Record<string, any>, (WonderCard | null)[]>((f) =>
+    mapData<(WonderCard | null)[], object, DB["wonder"][]>(async (wonder) => {
+      const creator = await dbFindOne<Schema["creator"]>("creator")({
+        _id: wonder.creator,
+      })(db());
+      return isErrorReport(creator)
+        ? null
+        : toWonderCard(wonder, toCreatorInWonderCard(creator));
+    }),
+    setData<WonderCard[], object, (WonderCard | null)[]>((f) =>
       deleteNull(f.data),
     ),
   ),
@@ -71,7 +69,7 @@ router.get(
     extractRequest({
       params: ["wonderId"],
       query: [],
-      headers: [],
+      headers: emptyHeader,
     } as const),
     authorizeUserLenient,
     parseContextToInt("wonderId"),
@@ -104,7 +102,7 @@ router.put(
     extractRequest({
       params: ["wonderId"],
       query: [],
-      headers: ["authorization"],
+      headers: authedHeader,
     } as const),
     extractBody<{ value: boolean }>({ value: true }),
     authorizeUser,
@@ -152,7 +150,7 @@ router.post(
     extractRequest({
       params: ["creatorId"],
       query: [],
-      headers: ["authorization"],
+      headers: authedHeader,
     } as const),
     extractBodyLenient<NewWonder>(),
     authorizeUser,

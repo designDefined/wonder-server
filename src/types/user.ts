@@ -1,7 +1,6 @@
 import { DateInformation, StoredImage } from "./utility";
 import { Wonder } from "./wonder";
 import { Creator } from "./creator";
-import { WithId } from "mongodb";
 import { Reservation } from "./reservation";
 
 export type User = {
@@ -19,13 +18,6 @@ export type User = {
   ticketBook: Reservation[];
   ownedCreators: Creator[];
 };
-
-export type UserDB = WithId<User>;
-
-export type UserDisplaySimple = Pick<
-  User,
-  "id" | "name" | "nickname" | "profileImage"
->;
 
 /**
  * Types For Situations

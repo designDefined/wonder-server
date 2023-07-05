@@ -1,11 +1,5 @@
 import { DateInformation, StoredImage } from "./utility";
-import {
-  Creator,
-  CreatorDisplay,
-  CreatorInWonderCard,
-  CreatorInWonderDetail,
-} from "./creator";
-import { WithId } from "mongodb";
+import { Creator, CreatorInWonderCard, CreatorInWonderDetail } from "./creator";
 import { User } from "./user";
 import { Reservation } from "./reservation";
 
@@ -41,17 +35,6 @@ export type Wonder = {
   reservations: Reservation[];
 };
 
-export type WonderDB = WithId<Wonder>;
-
-export type WonderView = Omit<Wonder, "creator"> & {
-  creator: CreatorDisplay;
-};
-export type WonderCardDisplay = Pick<
-  Wonder,
-  "id" | "title" | "tags" | "thumbnail"
-> & {
-  creator: CreatorDisplay;
-};
 /**
  * Types For Situations
  */

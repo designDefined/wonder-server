@@ -3,7 +3,7 @@ import { DateInformation } from "./utility";
 import { Wonder, WonderSchedule } from "./wonder";
 
 export type ReservationData = {
-  wonder: Wonder["id"];
+  wonderId: Wonder["id"];
   userId: User["id"];
   name?: User["name"];
   phoneNumber?: User["phoneNumber"];
@@ -23,4 +23,17 @@ export type Reservation = {
   time: ReservationTime;
   data: ReservationData;
   dateInformation: DateInformation;
+};
+
+/**
+ * Types For Situations
+ */
+
+export type ReservationProvidableData = "name" | "phoneNumber" | "email";
+
+export type NewReservation = {
+  wonderId: Wonder["id"];
+  userId: User["id"];
+  time: ReservationTime;
+  data: ReservationProvidableData[];
 };

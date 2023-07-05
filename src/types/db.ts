@@ -22,7 +22,7 @@ type CreatorSchema = Omit<Creator, "createdWonder" | "owner"> & {
 type WonderSchema = Omit<Wonder, "creator" | "likedUsers" | "reservations"> & {
   creator: WithId<Wonder["creator"]>["_id"];
   likedUsers: Wonder["likedUsers"][number]["id"][];
-  reservations: Wonder["reservations"];
+  reservations: Wonder["reservations"][number]["id"][];
 };
 
 type ReservationSchema = Omit<Reservation, "wonder" | "user"> & {

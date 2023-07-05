@@ -42,6 +42,8 @@ import {
   isValidWonderSchedule,
   isValidWonderTitle,
 } from "../functions/validator";
+import { NewReservation } from "../types/reservation";
+import { prepareNewReservation } from "../functions/reservation";
 
 const router = Router();
 
@@ -190,6 +192,57 @@ router.post(
       )(db());
       if (isErrorReport(result2)) return result2;
       return { isSuccess: true, createdId: result1 };
+    }),
+  ),
+);
+
+router.post(
+  "/:wonderId/reservation",
+  defineScenario(
+    extractRequest({
+      params: ["wonderId"],
+      query: [],
+      headers: authedHeader,
+    } as const),
+    extractBody<NewReservation>({
+      wonderId: -1,
+      userId: -1,
+      time: { date: [0, 0, 0], time: [] },
+      data: [],
+    }),
+    authorizeUser,
+    parseContextToInt("wonderId"),
+    setContext<DB["wonder"], { wonderId: number }>((f) =>
+      dbFindOne<Schema["wonder"]>("wonder")({ id: f.context.wonderId })(db()),
+    )("wonder"),
+    setContext<
+      Schema["reservation"],
+      { authedUser: DB["user"]; wonder: DB["wonder"]; body: NewReservation }
+    >(({ context: { body, authedUser, wonder } }) => {
+      return prepareNewReservation(body, wonder, authedUser);
+    })("newReservation"),
+    setData<
+      { isSuccess: boolean; createdId: DB["reservation"]["id"] },
+      { newReservation: Schema["reservation"] }
+    >(async (f) => {
+      const resultReservation = await dbInsertOne<Schema["reservation"]>(
+        "reservation",
+      )(f.context.newReservation)(db());
+      if (isErrorReport(resultReservation)) return resultReservation;
+
+      const resultWonder = await dbUpdateOne<DB["wonder"]>("wonder")(
+        { _id: f.context.newReservation.wonder },
+        { $push: { reservations: f.context.newReservation.id } },
+      )(db());
+      if (isErrorReport(resultWonder)) return resultWonder;
+
+      const resultUser = await dbUpdateOne<DB["user"]>("user")(
+        { _id: f.context.newReservation.user },
+        { $push: { reservations: f.context.newReservation.id } },
+      )(db());
+      if (isErrorReport(resultUser)) return resultUser;
+
+      return { isSuccess: true, createdId: f.context.newReservation.id };
     }),
   ),
 );

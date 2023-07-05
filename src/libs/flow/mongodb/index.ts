@@ -63,6 +63,35 @@ export const dbFindAsManyAs =
     return Promise.resolve(data);
   };
 
+export const dbFindLastAsManyAs =
+  <CollectionType extends Record<string, any>>(collectionName: string) =>
+  (amount: number) =>
+  (
+    filter: Filter<CollectionType> = {},
+    projection?: Partial<Record<keyof WithId<CollectionType>, 0 | 1>>,
+  ) =>
+  async (
+    db: Db | null,
+  ): Promise<WithId<CollectionType>[] | FlowErrorReport> => {
+    if (!db) return raiseSimpleError(500, "DB와 연결할 수 없습니다");
+
+    const config = projection ? { projection } : {};
+    const data = await db
+      .collection<CollectionType>(collectionName)
+      .find(filter, config)
+      .sort({ id: -1 })
+      .limit(amount)
+      .toArray();
+
+    if (!data || data.length < 1)
+      return raiseSimpleError(
+        500,
+        `데이터 ${collectionName}를(을) 찾을 수 없습니다`,
+      );
+
+    return Promise.resolve(data);
+  };
+
 export const dbFindOne =
   <CollectionType extends Record<string, any>>(collectionName: string) =>
   (

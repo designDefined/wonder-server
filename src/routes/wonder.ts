@@ -15,7 +15,7 @@ import {
   extractBodyLenient,
 } from "../libs/flow";
 import {
-  dbFind,
+  dbFindLastAsManyAs,
   dbFindOne,
   dbInsertOne,
   dbUpdateOne,
@@ -50,7 +50,9 @@ const router = Router();
 router.get(
   "/recent",
   defineScenario(
-    setData<DB["wonder"][]>(() => dbFind<Schema["wonder"]>("wonder")()(db())),
+    setData<DB["wonder"][]>(() =>
+      dbFindLastAsManyAs<Schema["wonder"]>("wonder")(5)()(db()),
+    ),
     mapData<(WonderCard | null)[], object, DB["wonder"][]>(async (wonder) => {
       const creator = await dbFindOne<Schema["creator"]>("creator")({
         _id: wonder.creator,

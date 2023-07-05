@@ -7,19 +7,32 @@ import {
   raiseScenarioErrorWithReport,
 } from "../libs/flow";
 import { dbFindOne } from "../libs/flow/mongodb";
-import { Schema } from "../types/db";
+import { DB, Schema } from "../types/db";
 import { ObjectId } from "mongodb";
 
-export const authorizeUser = setContext<
-  Schema["user"],
-  { authorization: string }
->((f) => {
-  const { type, _id } = verify(f.context.authorization, "testSecret") as {
+export const authorizeUser = setContext<DB["user"], { authorization: string }>(
+  (f) => {
+    const { type, _id } = verify(f.context.authorization, "testSecret") as {
+      type: string;
+      _id: string;
+    };
+    const userId = new ObjectId(_id);
+    if (type !== "user")
+      return raiseScenarioError(500, "유저 토큰이 아닙니다")(f);
+    const user = dbFindOne<Schema["user"]>("user")({ _id: userId })(db());
+    return isErrorReport(user) ? raiseScenarioErrorWithReport(user)(f) : user;
+  },
+)("authedUser");
+
+export const authorizeUserLenient = setContext<DB["user"] | "no_user">((f) => {
+  if (!f.req.headers.authorization) return "no_user";
+  const { type, _id } = verify(f.req.headers.authorization, "testSecret") as {
     type: string;
-    _id: ObjectId;
+    _id: string;
   };
+  const userId = new ObjectId(_id);
   if (type !== "user")
     return raiseScenarioError(500, "유저 토큰이 아닙니다")(f);
-  const user = dbFindOne<Schema["user"]>("user")({ _id })(db());
-  return isErrorReport(user) ? raiseScenarioErrorWithReport(user)(f) : user;
+  const user = dbFindOne<Schema["user"]>("user")({ _id: userId })(db());
+  return isErrorReport(user) ? "no_user" : user;
 })("authedUser");

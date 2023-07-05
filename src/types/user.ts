@@ -2,6 +2,7 @@ import { DateInformation, StoredImage } from "./utility";
 import { Wonder } from "./wonder";
 import { Creator } from "./creator";
 import { WithId } from "mongodb";
+import { Reservation } from "./reservation";
 
 export type User = {
   id: number;
@@ -13,9 +14,9 @@ export type User = {
   email: string;
   profileImage: StoredImage;
   dateInformation: DateInformation;
-  reservedWonders: Wonder[];
   likedWonders: Wonder[];
-  ticketBook: Wonder[];
+  reservedWonders: Reservation[];
+  ticketBook: Reservation[];
   ownedCreators: Creator[];
 };
 
@@ -46,3 +47,8 @@ export type UserRegisterForm = Pick<User, "email" | "name" | "phoneNumber"> & {
 export type NewUserParameter = Omit<UserRegisterForm, "access_token"> & {
   socialId: string;
 };
+
+export type UserWithEmail = Pick<
+  User,
+  "id" | "nickname" | "email" | "profileImage"
+>;

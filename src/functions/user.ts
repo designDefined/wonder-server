@@ -1,5 +1,10 @@
-import { Schema } from "../types/db";
-import { NewUserParameter, UserLoggedIn } from "../types/user";
+import { DB, Schema } from "../types/db";
+import {
+  NewUserParameter,
+  User,
+  UserLoggedIn,
+  UserWithEmail,
+} from "../types/user";
 import { sampleImageURL } from "./samples";
 import { unique } from "./uniqueId";
 
@@ -38,3 +43,10 @@ export const prepareNewUser = ({
     ownedCreators: [],
   };
 };
+
+export const toUserWithEmail = (user: DB["user"] | User): UserWithEmail => ({
+  id: user.id,
+  nickname: user.nickname,
+  profileImage: user.profileImage,
+  email: user.email,
+});

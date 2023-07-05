@@ -2,6 +2,7 @@ import { WithId } from "mongodb";
 import { User } from "./user";
 import { Wonder } from "./wonder";
 import { Creator } from "./creator";
+import { Reservation } from "./reservation";
 
 type UserSchema = Omit<
   User,
@@ -24,14 +25,21 @@ type WonderSchema = Omit<Wonder, "creator" | "likedUsers" | "reservations"> & {
   reservations: Wonder["reservations"];
 };
 
+type ReservationSchema = Omit<Reservation, "wonder" | "user"> & {
+  wonder: WithId<Reservation["wonder"]>["_id"];
+  user: WithId<Reservation["user"]>["_id"];
+};
+
 export type Schema = {
   user: UserSchema;
   wonder: WonderSchema;
   creator: CreatorSchema;
+  reservation: ReservationSchema;
 };
 
 export type DB = {
   user: WithId<UserSchema>;
   wonder: WithId<WonderSchema>;
   creator: WithId<CreatorSchema>;
+  reservation: WithId<ReservationSchema>;
 };

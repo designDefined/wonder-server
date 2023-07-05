@@ -15,6 +15,8 @@ import {
   MapData,
   ExtractBody,
   CheckFlow,
+  ExtractBodyLenient,
+  Flow,
 } from "./types";
 
 /**
@@ -108,8 +110,8 @@ export const extractRequest: ExtractRequest = (filter) => (inputFlow) => {
     }
   }, {});
   const extractedQuery = filter.query.reduce((acc, propName) => {
-    if (params[propName]) {
-      const value = params[propName];
+    if (query[propName]) {
+      const value = query[propName];
       return { ...acc, [propName]: value };
     } else {
       errors.push(`쿼리에서 ${propName}을 찾을 수 없습니다`);
@@ -150,6 +152,23 @@ export const extractBody: ExtractBody = (toCompare) => (inputFlow) => {
   }
   return raiseScenarioError(402, "body가 정확하지 않습니다")(inputFlow);
 };
+
+export const extractBodyLenient =
+  <T>() =>
+  <InputFlow extends BaseFlow>(
+    inputFlow: InputFlow,
+  ):
+    | Flow<InputFlow["context"] & { body: T }, InputFlow["data"]>
+    | FlowError => {
+    const { req } = inputFlow;
+    const { body } = req;
+    if (body === (undefined || null))
+      return raiseScenarioError(402, "body가 없습니다")(inputFlow);
+    return {
+      ...inputFlow,
+      context: { ...inputFlow.context, body: body as T },
+    };
+  };
 
 /**
  * Context

@@ -3,10 +3,10 @@ import {
   Filter,
   ObjectId,
   OptionalUnlessRequiredId,
+  UpdateFilter,
   WithId,
 } from "mongodb";
 import { raiseSimpleError } from "..";
-import { DbFindOne } from "./types";
 import { FlowErrorReport } from "../types";
 
 export const dbFind =
@@ -84,6 +84,47 @@ export const dbFindOne =
       );
 
     return Promise.resolve(data);
+  };
+
+export const dbFindLastOne =
+  <CollectionType extends Record<string, any>>(collectionName: string) =>
+  (
+    filter: Filter<CollectionType> = {},
+    projection?: Partial<Record<keyof WithId<CollectionType>, 0 | 1>>,
+  ) =>
+  async (db: Db | null): Promise<WithId<CollectionType> | FlowErrorReport> => {
+    if (!db) return raiseSimpleError(500, "DB와 연결할 수 없습니다");
+
+    const config = projection ? { projection } : {};
+    const data = await db
+      .collection<CollectionType>(collectionName)
+      .find(filter, config)
+      .sort({ id: -1 })
+      .limit(1)
+      .toArray();
+
+    if (!data || data.length < 1)
+      return raiseSimpleError(
+        500,
+        `데이터 ${collectionName}를(을) 찾을 수 없습니다`,
+      );
+
+    return Promise.resolve(data[0]);
+  };
+
+export const dbUpdateOne =
+  <CollectionType extends Record<string, any>>(collectionName: string) =>
+  (filter: Filter<CollectionType>, data: UpdateFilter<CollectionType>) =>
+  async (db: Db | null): Promise<boolean | FlowErrorReport> => {
+    if (!db) return raiseSimpleError(500, "DB와 연결할 수 없습니다");
+    const updateResult = await db
+      .collection<CollectionType>(collectionName)
+      .updateOne(filter, data);
+    if (!updateResult.acknowledged)
+      return raiseSimpleError(500, "데이터를 수정할 수 없습니다");
+    return updateResult.matchedCount > 0
+      ? true
+      : raiseSimpleError(500, "아무 데이터도 수정되지 않았습니다");
   };
 
 export const dbInsertOne =

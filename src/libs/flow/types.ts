@@ -167,6 +167,11 @@ export type ExtractBody = <ExpectedValue>(
 ) =>
   | Flow<InputFlow["context"] & { body: ExpectedValue }, InitialFlow["data"]>
   | FlowError;
+export type ExtractBodyLenient<ExpectedValue> = <InputFlow extends BaseFlow>(
+  inputFlow: InputFlow,
+) =>
+  | Flow<InputFlow["context"] & { body: ExpectedValue }, InitialFlow["data"]>
+  | FlowError;
 
 /**
  * Context
@@ -194,10 +199,7 @@ export type ParseContextToInt = <Key extends string>(
 ) => <InputFlow extends Flow<Record<Key, string>, unknown>>(
   inputFlow: InputFlow,
 ) =>
-  | Flow<
-      Omit<InputFlow["context"], Key> & Record<Key, number>,
-      InputFlow["data"]
-    >
+  | Flow<InputFlow["context"] & Record<Key, number>, InputFlow["data"]>
   | FlowError;
 
 /**

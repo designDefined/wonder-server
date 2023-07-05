@@ -12,14 +12,15 @@ import {
   setData,
   setContext,
   appendData,
-  prompt,
   promptWithFlag,
   cutData,
   parseContextToInt,
+  promptFlow,
 } from "./libs/flow";
 import { Wonder } from "./types/wonder";
 import { dbFindOne } from "./libs/flow/mongodb";
 import { WithId } from "mongodb";
+import { initUniqueId } from "./functions/uniqueId";
 
 /*** basics ***/
 dotenv.config();
@@ -30,9 +31,14 @@ const port = process.env.PORT;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.disable("etag");
 
 /*** connect DB ***/
-connectDB().catch(() => console.log("DB connection failed"));
+connectDB()
+  .then(() => {
+    initUniqueId().catch(() => console.log("init unique id failed"));
+  })
+  .catch(() => console.log("DB connection failed"));
 
 /*** routes ***/
 app.use("/", index);
@@ -52,7 +58,7 @@ app.get(
       dbFindOne<Wonder>("wonder")({ id: f.context.wonder_id })(db()),
     ),
     cutData("_id"),
-    prompt,
+    promptFlow,
   ),
 );
 

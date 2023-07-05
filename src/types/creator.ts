@@ -28,3 +28,13 @@ export type CreatorInWonderDetail = Pick<
   Creator,
   "id" | "name" | "profileImage"
 > & { subscribed: boolean };
+export type OwnedCreator = Pick<Creator, "id" | "profileImage" | "name">;
+
+export type CreatorDetail = Pick<
+  Creator,
+  "id" | "name" | "profileImage" | "summary" | "instagram"
+> & {
+  isMine: boolean;
+};
+
+export type NewCreator = Pick<Creator, "name" | "summary" | "instagram">;

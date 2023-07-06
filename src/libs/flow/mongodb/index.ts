@@ -115,6 +115,11 @@ export const dbFindOne =
     return Promise.resolve(data);
   };
 
+/**
+ *
+ * TODO
+ *  Error 코드 다르게 해서 uniqueId에서 사용
+ */
 export const dbFindLastOne =
   <CollectionType extends Record<string, any>>(collectionName: string) =>
   (

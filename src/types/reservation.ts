@@ -12,7 +12,7 @@ export type ReservationData = {
 export type ReservationTime = WonderSchedule;
 
 // {
-//   day: [number, number, number];
+//   date: [number, number, number];
 //   time: [number, number][];
 // };
 

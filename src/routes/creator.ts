@@ -126,7 +126,7 @@ router.post(
       },
     )("newCreator"),
     setData<
-      { createdId: DB["creator"]["_id"]; isSuccess: boolean },
+      { createdId: DB["creator"]["id"]; isSuccess: boolean },
       { newCreator: Schema["creator"]; authedUser: DB["user"] }
     >(async (f) => {
       const id = await dbInsertOne<Schema["creator"]>("creator")(
@@ -141,7 +141,7 @@ router.post(
       if (isErrorReport(updatedUser))
         return raiseScenarioErrorWithReport(updatedUser)(f);
       if (isErrorReport(id)) return raiseScenarioErrorWithReport(id)(f);
-      return { isSuccess: true, createdId: id };
+      return { isSuccess: true, createdId: f.context.newCreator.id };
     }),
   ),
 );

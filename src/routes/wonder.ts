@@ -1,6 +1,11 @@
 import { Router } from "express";
 import db from "../db/connect";
-import { NewWonder, WonderCard, WonderDetail } from "../types/wonder";
+import {
+  NewWonder,
+  NewWonderWithRawImage,
+  WonderCard,
+  WonderDetail,
+} from "../types/wonder";
 
 import defineScenario from "../libs/flow/express";
 import {
@@ -13,6 +18,7 @@ import {
   extractBody,
   raiseScenarioError,
   extractBodyLenient,
+  promptFlow,
 } from "../libs/flow";
 import {
   dbFindLastAsManyAs,
@@ -44,6 +50,8 @@ import {
 } from "../functions/validator";
 import { NewReservation } from "../types/reservation";
 import { prepareNewReservation } from "../functions/reservation";
+import { uploadThumbnail } from "../functions/aws";
+import { unique } from "../functions/uniqueId";
 
 const router = Router();
 
@@ -75,6 +83,8 @@ router.get(
       query: [],
       headers: emptyHeader,
     } as const),
+    promptFlow,
+
     authorizeUserLenient,
     parseContextToInt("wonderId"),
     setData<DB["wonder"], { wonderId: number }>((f) =>
@@ -156,12 +166,12 @@ router.post(
       query: [],
       headers: authedHeader,
     } as const),
-    extractBodyLenient<NewWonder>(),
+    extractBodyLenient<NewWonderWithRawImage>(),
     authorizeUser,
     parseContextToInt("creatorId"),
     setContext<
       Schema["wonder"],
-      { authedUser: DB["user"]; creatorId: number; body: NewWonder }
+      { authedUser: DB["user"]; creatorId: number; body: NewWonderWithRawImage }
     >(async (f) => {
       const creator = await dbFindOne<Schema["creator"]>("creator")({
         id: f.context.creatorId,
@@ -178,22 +188,32 @@ router.post(
       if (!isValidWonderLocation(location))
         return raiseScenarioError(402, "장소가 유효하지 않습니다.")(f);
 
-      return prepareNewWonder(f.context.body, creator._id);
+      const presignedId = unique.wonderId();
+      const presignedThumbnail = await uploadThumbnail(
+        f.context.body.thumbnail.file,
+        `${presignedId}_${f.context.body.thumbnail.fileName}`,
+      );
+      if (isErrorReport(presignedThumbnail)) return presignedThumbnail;
+
+      return prepareNewWonder(f.context.body, creator._id, presignedId, {
+        src: `${presignedThumbnail}`,
+        altText: `${presignedId}_${f.context.body.thumbnail.fileName}`,
+      });
     })("newWonder"),
     setData<
-      { isSuccess: boolean; createdId: DB["wonder"]["_id"] },
-      { creatorId: DB["creator"]["_id"]; newWonder: Schema["wonder"] }
+      { isSuccess: boolean; createdId: DB["wonder"]["id"] },
+      { creatorId: DB["creator"]["id"]; newWonder: Schema["wonder"] }
     >(async (f) => {
       const result1 = await dbInsertOne<Schema["wonder"]>("wonder")(
         f.context.newWonder,
       )(db());
       if (isErrorReport(result1)) return result1;
       const result2 = await dbUpdateOne<DB["creator"]>("creator")(
-        { _id: f.context.creatorId },
+        { id: f.context.creatorId },
         { $push: { createdWonder: f.context.newWonder.id } },
       )(db());
       if (isErrorReport(result2)) return result2;
-      return { isSuccess: true, createdId: result1 };
+      return { isSuccess: true, createdId: f.context.newWonder.id };
     }),
   ),
 );
@@ -240,7 +260,7 @@ router.post(
 
       const resultUser = await dbUpdateOne<DB["user"]>("user")(
         { _id: f.context.newReservation.user },
-        { $push: { reservations: f.context.newReservation.id } },
+        { $push: { reservedWonders: f.context.newReservation.id } },
       )(db());
       if (isErrorReport(resultUser)) return resultUser;
 

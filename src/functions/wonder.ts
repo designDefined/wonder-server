@@ -3,6 +3,7 @@ import { DB, Schema } from "../types/db";
 import { Reservation } from "../types/reservation";
 import {
   NewWonder,
+  NewWonderWithRawImage,
   Wonder,
   WonderCard,
   WonderDetail,
@@ -70,13 +71,15 @@ export const prepareWonderTag = (input: string[]): Wonder["tags"] =>
   );
 
 export const prepareNewWonder = (
-  wonder: NewWonder,
+  wonder: NewWonderWithRawImage,
   creatorId: DB["creator"]["_id"],
+  presigedId: number,
+  presignedThumbnail: NewWonder["thumbnail"],
 ): Schema["wonder"] => ({
-  id: unique.wonderId(),
+  id: presigedId,
   title: wonder.title,
   tags: prepareWonderTag(wonder.tags),
-  thumbnail: wonder.thumbnail,
+  thumbnail: presignedThumbnail,
   creator: creatorId,
   summary: wonder.summary,
   content: wonder.content,

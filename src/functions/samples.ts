@@ -5,11 +5,11 @@ export const sampleImageURL: {
   creator: () => StoredImage;
 } = {
   user: () => ({
-    src: `${baseS3URL}sample/thumbnail_sample_1.png`,
+    src: `${baseS3URL}sample/no_profile.png`,
     altText: "sample user thumbnail",
   }),
   creator: () => ({
-    src: `${baseS3URL}sample/thumbnail_sample_2.png`,
+    src: `${baseS3URL}sample/no_profile.png`,
     altText: "sample creator thumbnail",
   }),
 };

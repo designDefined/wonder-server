@@ -66,6 +66,21 @@ export type WonderSummaryReservation = Pick<
   reservedTime: Wonder["schedule"][number];
 };
 
+export type NewWonderImage = { file: File; url: string; fileName: string };
+
+export type NewWonderWithRawImage = Pick<
+  Wonder,
+  | "title"
+  | "summary"
+  | "content"
+  | "schedule"
+  | "location"
+  | "reservationProcess"
+> & {
+  tags: string[];
+  thumbnail: NewWonderImage;
+};
+
 export type NewWonder = Pick<
   Wonder,
   | "title"
